@@ -97,7 +97,7 @@ canvas{flex:1;width:100%;touch-action:none}
 </div>
 
 <div class="scr" id="game">
- <div class="top"><button class="btn hold" data-hold>↩ رجوع<i></i></button><div class="stars" id="gst"></div></div>
+ <div class="top"><button class="btn" id="back" onclick="openCtx()" style="font-size:20px;padding:10px 18px">↩ رجوع</button><div class="stars" id="gst"></div></div>
  <div class="prompt" id="gp"></div>
  <div id="area"></div>
 </div>
@@ -150,7 +150,8 @@ const sWrong=()=>{burst(.2,260,1.5,1.2,0)};
 function sClap(){for(let i=0;i<16;i++)burst(.05,900+Math.random()*900,.7,1.1,Math.random()*1.3)}
 let VO=null;function pv(){try{const v=speechSynthesis.getVoices();VO=v.find(x=>/^ar/i.test(x.lang))||null}catch(e){}}
 if('speechSynthesis' in window){pv();speechSynthesis.onvoiceschanged=pv}
-function say(t){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';if(VO)u.voice=VO;u.rate=.85;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}}
+const VOICE=false; // فعّلها عند إضافة الأصوات المسجّلة
+function say(t){if(!VOICE)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ar-SA';if(VO)u.voice=VO;u.rate=.85;u.pitch=1.15;speechSynthesis.speak(u)}catch(e){}}
 const PR=['أحسنت!','رائع!','ممتاز!','أنت بطل!','أحسنت يا ذكي!','هذا صحيح!'];
 const rnd=a=>a[Math.random()*a.length|0];
 function good(x){sPop();vib(40);say(rnd(PR)+(x?' '+x:''))}
@@ -208,10 +209,6 @@ function prompt(t,speak=true){$('gp').innerHTML=t;if(speak)say($('gp').textConte
 function win(){PRG[CTX.key+CG]=1;saveP();stopGame();
  setTimeout(()=>{$('dh').innerHTML=P[CTX.hero];$('dsub').textContent=CTX.sub;$('done').classList.add('on');sClap();say('أحسنت يا بطل! '+CTX.msg());confetti()},500)}
 function confetti(){const C=['#EF6461','#F08C00','#1F9D63','#2F7DE1','#7C4DDB','#FFD43B'];for(let i=0;i<40;i++){const c=document.createElement('div');c.className='conf';c.style.left=Math.random()*100+'vw';c.style.background=rnd(C);c.style.animationDelay=Math.random()*.6+'s';$('done').appendChild(c);setTimeout(()=>c.remove(),2600)}}
-document.querySelectorAll('[data-hold]').forEach(b=>{let tm,i=b.querySelector('i');
- const st=e=>{e.preventDefault();i.style.transition='transform 1.2s linear';i.style.transform='scaleX(1)';tm=setTimeout(openCtx,1200)};
- const en=()=>{clearTimeout(tm);i.style.transition='none';i.style.transform='scaleX(0)'};
- b.addEventListener('pointerdown',st);b.addEventListener('pointerup',en);b.addEventListener('pointerleave',en)});
 function el(tag,cls,html){const d=document.createElement(tag);if(cls)d.className=cls;if(html!=null)d.innerHTML=html;return d}
 
 /* ====== الألعاب ====== */
@@ -247,7 +244,7 @@ G_.trace=L=>{const A=$('area');const cv=el('canvas');A.appendChild(cv);const cx=
  cv.addEventListener('pointermove',e=>tracing&&mv(e));cv.addEventListener('pointerup',()=>tracing=false);
  const rs=()=>setup();addEventListener('resize',rs);CLEAN=()=>removeEventListener('resize',rs);setTimeout(setup,30)};
 // 3) أين الحرف
-G_.where=L=>{const A=$('area');let r=0;stars(0,5);const hero=el('div','hero',P[L.hero2]),box=el('div','ltrs'),rep=el('button','btn','🔊 أعد السؤال');A.append(hero,box,rep);
+G_.where=L=>{const A=$('area');let r=0;stars(0,5);const hero=el('div','hero',P[L.hero2]),box=el('div','ltrs'),rep=el('div');A.append(hero,box,rep);
  const q=()=>say('أين حرف '+L.name+'؟ '+L.snd);rep.onclick=q;
  function next(){const n=r<2?2:3,ls=shuf([L.ch,...shuf(OTHERS.filter(c=>c!=L.ch)).slice(0,n-1)]);box.innerHTML='';prompt(`أين حرف ${L.name}؟`,false);q();
   ls.forEach((c,i)=>{const d=el('div','lc',c);d.style.color=['#2F7DE1','#F08C00','#7C4DDB'][i];d.onclick=()=>{if(c==L.ch){r++;stars(r,5);popc(d);good(L.snd);r==5?win():setTimeout(next,1100)}else{shake(d);bad('هذا حرف آخر، أين '+L.name+'؟')}};box.appendChild(d)})}
@@ -275,7 +272,7 @@ G_.memory=L=>{const A=$('area');let open=[],found=0,lock=false;stars(0,3);prompt
 
 /* ====== ألعاب الألوان ====== */
 const ITEMS=[['tball','الكرة'],['tstar','النجمة'],['theart','القلب']];
-G_.cwhere=S_=>{const A=$('area');let r=0;stars(0,5);const box=el('div','ltrs'),rep=el('button','btn','🔊 أعد السؤال');A.append(el('div','hero',P.rabbit),box,rep);let q;
+G_.cwhere=S_=>{const A=$('area');let r=0;stars(0,5);const box=el('div','ltrs'),rep=el('div');A.append(el('div','hero',P.rabbit),box,rep);let q;
  function next(){const tg=rnd(S_.cs),n=r<2?2:3,os=shuf([tg,...shuf(S_.cs.filter(x=>x!=tg)).slice(0,n-1)]);q=()=>say('أين اللون ال'+tg.n+'؟');rep.onclick=q;prompt('أين اللون ال'+tg.n+'؟',false);q();box.innerHTML='';
   os.forEach(o=>{const d=el('div','blob');d.style.background=o.c;d.onclick=()=>{if(o==tg){r++;stars(r,5);popc(d);good('هذا '+o.n);r==5?win():setTimeout(next,1100)}else{shake(d);bad('هذا '+o.n+'، أين ال'+tg.n+'؟')}};box.appendChild(d)})}
  next()};
